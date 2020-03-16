@@ -8,6 +8,20 @@ pub struct Packet {
 }
 
 impl Packet {
+	pub fn message_packet(msg: String, target: String, sender: &player) -> Packet {
+		let mut p = Packet {
+			id: 7,
+			buffer: BytesMut::with_capacity(512),
+		};
+		
+		p.buffer.put_str(format!("{}!", sender.username));
+		p.buffer.put_str(msg);
+		p.buffer.put_str(target);
+		p.buffer.put_i32_le(sender.id);
+		
+		p
+	}
+
 	pub fn presence_packet(p: &player) -> Packet {
 		let mut pc = Packet {
 			id: 83,
