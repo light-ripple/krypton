@@ -74,12 +74,13 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 		buf.string_packet(24, format!("Hello, {}!", p.username));
 		unsafe {
 			let presence_packet = Packet::presence_packet(&mut p);
+			let stats_packet = Packet::stats_packet(&mut p);
 			buf.write_packet(&presence_packet);
+			buf.write_packet(&stats_packet);
 			for i in 0..PLAYERS.len() {
 				PLAYERS[i].queue.write_packet(&presence_packet);
-				//PLAYERS[i].queue.stats_packet(&mut p);
+				PLAYERS[i].queue.write_packet(&stats_packet);
 				buf.write_packet(&Packet::presence_packet(&mut PLAYERS[i]));
-				//buf.stats_packet(&mut PLAYERS[i]);
 			}
 			PLAYERS.push(p);
 		}
