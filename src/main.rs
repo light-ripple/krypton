@@ -81,6 +81,7 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 				PLAYERS[i].queue.write_packet(&stats_packet);
 				buf.write_packet(&Packet::presence_packet(&mut PLAYERS[i]));
 			}
+			buf.write_packet(&Packet::channel_exists(String::from("#osu"), String::from("Main osu channel"), 0));
 			PLAYERS.push(p);
 		}
 		HttpResponse::Ok().set_header("cho-token", format!("{}", token)).body(buf)
@@ -110,6 +111,7 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 			match id {
 				_ => println!("Got Packet {} with Len {}", id, len),
 			}
+			p.queue.write_packet(&Packet::message_packet(format!("Packet {} with {}", id, len), String::from("#osu"), String::from("Bot1"), 1339));
 		}
 		
 		let mut buf = BytesMut::with_capacity(1024);
@@ -117,6 +119,7 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 		unsafe {
 			p.queue.set_len(0);
 		}
+		
 		HttpResponse::Ok()
         .body(buf)
 	}

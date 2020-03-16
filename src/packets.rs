@@ -8,16 +8,29 @@ pub struct Packet {
 }
 
 impl Packet {
-	pub fn message_packet(msg: String, target: String, sender: &player) -> Packet {
+	pub fn channel_exists(chan: String, topic: String, count: u16) -> Packet {
+		let mut p = Packet {
+			id: 65,
+			buffer: BytesMut::with_capacity(128),
+		};
+		
+		p.buffer.put_str(chan);
+		p.buffer.put_str(topic);
+		p.buffer.put_u16_le(count);
+		
+		p
+	}
+
+	pub fn message_packet(msg: String, target: String, name: String, id: i32) -> Packet {
 		let mut p = Packet {
 			id: 7,
 			buffer: BytesMut::with_capacity(512),
 		};
 		
-		p.buffer.put_str(format!("{}!", sender.username));
+		p.buffer.put_str(name);
 		p.buffer.put_str(msg);
 		p.buffer.put_str(target);
-		p.buffer.put_i32_le(sender.id);
+		p.buffer.put_i32_le(id);
 		
 		p
 	}
