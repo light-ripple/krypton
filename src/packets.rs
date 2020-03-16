@@ -25,6 +25,17 @@ impl Packet {
 		
 		pc
 	}
+	
+	pub fn stats_packet(p :&player) -> Packet {
+		let mut pc = Packet {
+			id: 11,
+			buffer: BytesMut::with_capacity(256),
+		};
+		
+		pc.buffer.put_i32_le(p.id);
+		
+		pc
+	}
 }
 
 pub trait Packets {
