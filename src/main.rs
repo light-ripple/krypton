@@ -34,7 +34,6 @@ async fn fmain() -> HttpResponse {
 
 //#[get("/")]
 async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
-	println!("Request");
 	let header = req.headers().get("User-Agent");
 	if header.is_none() {
 		return HttpResponse::BadRequest().body("Bad Request")
@@ -92,14 +91,32 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 			return HttpResponse::Ok().body(&b"\x05\x00\x00\x04\x00\x00\x00\xFB\xFF\xFF\xFF"[..]);
 		}
 		let p = p.unwrap();
+		println!("Request from {}", p.username);
+		let mut i = 0;
+		loop {
+			if i + 6 > body.len() {
+				break
+			}
+			let id: u16;
+			let len: u32;
+			unsafe {
+				id = *(&body[i] as *const _ as *const u16);
+				i += 3;
+				len = *(&body[i] as *const _ as *const u32);
+				i += 4;
+				i += len as usize;
+			}
+			
+			match id {
+				_ => println!("Got Packet {} with Len {}", id, len),
+			}
+		}
 		
 		let mut buf = BytesMut::with_capacity(1024);
 		buf.put(&p.queue[..]);
 		unsafe {
 			p.queue.set_len(0);
 		}
-		println!("Request from {}", p.username);
-		println!("Body {:?}!", body);
 		HttpResponse::Ok()
         .body(buf)
 	}
