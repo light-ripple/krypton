@@ -1,7 +1,9 @@
 mod objects;
 mod packets;
+mod query;
 
 extern crate rand;
+extern crate bcrypt;
 
 use crate::packets::{Packet, Packets};
 use objects::player as player;
@@ -11,6 +13,8 @@ use std::str::FromStr;
 use std::str;
 use bytes::{Bytes, BytesMut, BufMut};
 use actix_web::{web, App, HttpServer, HttpResponse, HttpRequest};
+use mysql::*;
+use mysql::prelude::*;
 
 const MAX_BPACKET: usize = 8192;
 
@@ -33,7 +37,7 @@ async fn fmain() -> HttpResponse {
 }*/
 
 //#[get("/")]
-async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
+async fn bmain(req: HttpRequest, body: Bytes, pool: web::Data<Pool>) -> HttpResponse {
 	let header = req.headers().get("User-Agent");
 	if header.is_none() {
 		return HttpResponse::BadRequest().body("Bad Request")
@@ -56,13 +60,25 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 			return HttpResponse::BadRequest().body("Bad Request")
 		}
 		let username = v[0];
-		let _password = v[1];
+		let password = v[1];
 		let _client_data = v[2];
+		// SQL stuff here
+		let mut conn = pool.get_conn().unwrap();
+		let res = match conn.exec_first::<(i32, String, String), _, _>("SELECT id, username, password_md5 FROM users WHERE username = ? OR username_safe = ?", (username, username)) {
+			Ok(v) => v,
+			Err(e) => panic!(e),
+		};
+		if res.is_none() {
+			return HttpResponse::Ok().set_header("cho-token", "no").body(&b"\x05\x00\x00\x04\x00\x00\x00\xFF\xFF\xFF\xFF"[..])
+		}
+		
+		let (id, username, db_password) = res.unwrap();
 		// BCrypt stuff here
-		
+		let verified = bcrypt::verify(password, &db_password).unwrap();
 		// Failed Login
-		
-		let id = 1337;
+		if !verified {
+			return HttpResponse::Ok().set_header("cho-token", "no").body(&b"\x05\x00\x00\x04\x00\x00\x00\xFF\xFF\xFF\xFF"[..]);
+		}
 		
 		let mut rng = rand::thread_rng();
 		let token: u64 = rng.gen();
@@ -89,7 +105,7 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 		let p = get_player(u64::from_str(token.unwrap().to_str().unwrap()).unwrap());
 		
 		if p.is_none() {
-			return HttpResponse::Ok().body(&b"\x05\x00\x00\x04\x00\x00\x00\xFB\xFF\xFF\xFF"[..]);
+			return HttpResponse::Forbidden().body(&b"\x05\x00\x00\x04\x00\x00\x00\xFB\xFF\xFF\xFF"[..]);
 		}
 		let p = p.unwrap();
 		println!("Request from {}", p.username);
@@ -125,12 +141,17 @@ async fn bmain(req: HttpRequest, body: Bytes) -> HttpResponse {
 	}
 }
 
+const DB_URL: &'static str = "mysql://root:lol123@localhost:3306/ripplef";
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+	let pool = Pool::new(DB_URL).unwrap();
 	// PLAYERS = HashMap::new();
 	// assert!(false);
 	println!("Starting Server");
-    HttpServer::new(|| App::new().service(web::resource("/").route(web::post().to(bmain))))
+    HttpServer::new(move || App::new()
+		.data(pool.clone())
+		.service(web::resource("/").route(web::post().to(bmain))))
         .bind("127.0.0.1:5001")?
         .run()
         .await
