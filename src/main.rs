@@ -36,6 +36,10 @@ async fn fmain() -> HttpResponse {
 	HttpResponse::Ok().body(format!("Hello there!\nUsers Online: {}", PLAYERS.len()))
 }*/
 
+fn event_get_stats(mut p: &mut player::Player) {
+	p.queue.write_packet(&Packet::stats_packet(p));
+}
+
 //#[get("/")]
 async fn bmain(req: HttpRequest, body: Bytes, pool: web::Data<Pool>) -> HttpResponse {
 	let header = req.headers().get("User-Agent");
@@ -87,6 +91,14 @@ async fn bmain(req: HttpRequest, body: Bytes, pool: web::Data<Pool>) -> HttpResp
 		let mut buf = BytesMut::with_capacity(MAX_BPACKET);
 		buf.int_packet(5, p.id);
 		buf.string_packet(24, format!("Hello, {}!", p.username));
+		for i in 0..4 {
+			p.stats.push(player::Stats::new());
+			p.set_stats(i, false, &mut conn);
+		}
+		for i in 0..3 {
+			p.stats.push(player::Stats::new());
+			p.set_stats(i, true, &mut conn);
+		}
 		unsafe {
 			let presence_packet = Packet::presence_packet(&mut p);
 			let stats_packet = Packet::stats_packet(&mut p);
@@ -96,6 +108,7 @@ async fn bmain(req: HttpRequest, body: Bytes, pool: web::Data<Pool>) -> HttpResp
 				PLAYERS[i].queue.write_packet(&presence_packet);
 				PLAYERS[i].queue.write_packet(&stats_packet);
 				buf.write_packet(&Packet::presence_packet(&mut PLAYERS[i]));
+				buf.write_packet(&Packet::stats_packet(&mut PLAYERS[i]));
 			}
 			buf.write_packet(&Packet::channel_exists(String::from("#osu"), String::from("Main osu channel"), 0));
 			PLAYERS.push(p);
@@ -107,7 +120,7 @@ async fn bmain(req: HttpRequest, body: Bytes, pool: web::Data<Pool>) -> HttpResp
 		if p.is_none() {
 			return HttpResponse::Forbidden().body(&b"\x05\x00\x00\x04\x00\x00\x00\xFB\xFF\xFF\xFF"[..]);
 		}
-		let p = p.unwrap();
+		let mut p = p.unwrap();
 		println!("Request from {}", p.username);
 		let mut i = 0;
 		loop {
@@ -125,6 +138,7 @@ async fn bmain(req: HttpRequest, body: Bytes, pool: web::Data<Pool>) -> HttpResp
 			}
 			
 			match id {
+				3 => event_get_stats(p),
 				_ => println!("Got Packet {} with Len {}", id, len),
 			}
 			p.queue.write_packet(&Packet::message_packet(format!("Packet {} with {}", id, len), String::from("#osu"), String::from("Bot1"), 1339));

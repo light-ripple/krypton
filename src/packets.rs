@@ -60,6 +60,24 @@ impl Packet {
 		};
 		
 		pc.buffer.put_i32_le(p.id);
+		pc.buffer.put_u8(p.action);
+		pc.buffer.put_str(p.action_text.clone());
+		pc.buffer.put_str(p.action_hash.clone());
+		pc.buffer.put_i32_le(p.action_mods);
+		pc.buffer.put_u8(p.mode);
+		pc.buffer.put_i32_le(p.action_beatmap);
+		
+		let mut s = &(p.stats[p.mode as usize]);
+		pc.buffer.put_u64_le(s.ranked_score);
+		pc.buffer.put_f32_le(s.accuracy);
+		pc.buffer.put_i32_le(s.playcount);
+		pc.buffer.put_u64_le(s.total_score);
+		pc.buffer.put_i32_le(s.rank);
+		if s.performance > std::u16::MAX as i32 {
+			pc.buffer.put_u16(0);
+		} else {
+			pc.buffer.put_u16_le(s.performance as u16);
+		}
 		
 		pc
 	}
