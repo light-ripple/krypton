@@ -1,18 +1,12 @@
-use crate::objects::player::Player;
+use crate::objects::Player;
+
+use std::string::String;
+use std::sync::Mutex;
+use std::vec::Vec;
 
 #[derive(Debug)]
 pub struct Channel {
-	name: String,
-	topic: String,
-	players: Vec<Player>,
-}
-
-impl Channel {
-	pub fn new(name: String, topic: String) -> Channel {
-		Channel {
-			name,
-			topic,
-			players: vec![],
-		}
-	}
+    pub name: String,
+    pub desc: String,
+    players: Mutex<Vec<Player>>
 }
