@@ -1,12 +1,48 @@
 [package]
-name = "spielplatz"
-version = "0.1.0"
-authors = ["infernalfire72"]
-edition = "2018"
+name          =  "spielplatz"
+description   =  "A bancho in Rust"
+version       =  "0.1.0"
+authors       =  ["infernalfire72"]
+edition       =  "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.dev]
+opt-level         =  3          # apply all optimizations
+debug             =  true       # debug information
+debug-assertions  =  true       # runtime validation (debug/development builds)
+overflow-checks   =  true       # panic will occur on overflow
+lto               =  "fat"      # perform optimizations across all crates within the dependency graph
+panic             =  "abort"    # Terminate the process upon panic
+incremental       =  true       # improves re-compile times
+codegen-units     =  256        # crate to be processed in parallel (256 for incremental builds)
+rpath             =  false      # disable rpath flag
+
+
+[profile.release]
+opt-level         =  3          # apply all optimizations
+debug             =  false      # debug information
+debug-assertions  =  false      # runtime validation (debug/development builds)
+overflow-checks   =  false      # panic will occur on overflow
+lto               =  "fat"      # perform optimizations across all crates within the dependency graph
+panic             =  "abort"    # Unwind the stack upon panic
+incremental       =  false      # improves re-compile times
+codegen-units     =  16         # crate to be processed in parallel (16 for non-incremental builds)
+rpath             =  false      # disable rpath flag
+
+
+[profile.test]
+opt-level         =  3          # apply all optimizations
+debug             =  true       # debug information
+debug-assertions  =  true       # runtime validation (debug/development builds)
+overflow-checks   =  true       # panic will occur on overflow
+lto               =  "fat"      # perform optimizations across all crates within the dependency graph
+# panic           =  "abort"    # Terminate the process upon panic (ignored for test profile)
+incremental       =  true       # improves re-compile times
+codegen-units     =  256        # crate to be processed in parallel (256 for incremental builds)
+rpath             =  false      # disable rpath flag
+
 
 [dependencies]
-actix-web = "3"
-bytes = "0.5.6"
-spielplatz_macros = { path = "./spielplatz_macros" }
+actix-web          =  "3"
+bytes              =  "0.5.6"
+spielplatz_macros  =  { path = "./spielplatz_macros" }
