@@ -45,4 +45,14 @@ impl Manager {
             None => None
         }
     }
+
+    // To get lock out of scope after operations
+    pub fn channels_fn<F>(&self, mut func: F)
+        where F : FnMut(&Channel)
+    {
+        let channels = self.channels.read().unwrap();
+        for (_, channel) in channels.iter() {
+            func(channel);
+        }
+    }
 }

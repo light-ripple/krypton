@@ -3,7 +3,7 @@ use bytes::{BufMut, BytesMut};
 pub trait Uleb128 {
     fn put_uleb128(&mut self, value: usize);
     fn put_str(&mut self, value: &str);
-    fn put_string(&mut self, value: String);
+    fn put_string(&mut self, value: &String);
 }
 
 impl Uleb128 for BytesMut {
@@ -17,10 +17,10 @@ impl Uleb128 for BytesMut {
     }
 
     fn put_str(&mut self, value: &str) {
-        self.put_string(String::from(value));
+        self.put_string(&value.to_string());
     }
 
-    fn put_string(&mut self, value: String) {
+    fn put_string(&mut self, value: &String) {
         if value.len() == 0 {
             self.put_u8(0);
             return;

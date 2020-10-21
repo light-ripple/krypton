@@ -7,15 +7,15 @@ pub fn packet(attr: TokenStream, item: TokenStream) -> TokenStream {
 	let input = parse_macro_input!(item as ItemStruct);
 	let name = &input.ident;
 	
-	// Massive Cancer
-	let id = attr.to_string().parse::<u16>().unwrap();
+	// only proc_macro2 implements quote::ToTokens
+	let id = proc_macro2::TokenStream::from(attr);
 	
 	TokenStream::from(quote! {
 		#input
 	
 		impl Packet for #name {
 			fn get_id(&self) -> u16 {
-				#id
+				#id as u16
 			}
 		}
 	})

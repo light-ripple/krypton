@@ -7,16 +7,22 @@ use std::vec::Vec;
 #[derive(Debug)]
 pub struct Channel {
     pub name: String,
-    pub desc: String,
+    pub description: String,
+    pub autojoin: bool,
     players: RwLock<Vec<Arc<Player>>>
 }
 
 impl Channel {
-    pub fn new(name: String, desc: String) -> Self {
+    pub fn new(name: String, description: String, autojoin: bool) -> Self {
         Self {
             name,
-            desc,
+            description,
+            autojoin,
             players: RwLock::new(vec![])
         }
+    }
+
+    pub fn user_count(&self) -> u16 {
+        self.players.read().unwrap().len() as u16
     }
 }
