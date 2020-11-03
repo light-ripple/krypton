@@ -160,8 +160,7 @@ async fn bancho_main(
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
-    println!("Hello, world!");
-    println!("Welcome to krypton v2 (edition spielplatz)");
+    println!("{:1}\n{:1}", "Hello World!", "Welcome to krypton v2 (edition spielplatz)");
 
     let pool = MySqlPoolOptions::new()
         .max_connections(16)
