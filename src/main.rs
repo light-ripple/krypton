@@ -83,8 +83,6 @@ async fn bancho_main(
 
             if bcrypt::verify(password, &user.password).unwrap() {
                 user.password = password.to_string();
-            } else {
-
             }
 
             let mut rng = thread_rng();
