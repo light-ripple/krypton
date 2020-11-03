@@ -9,18 +9,31 @@ use crate::manager::Manager;
 use crate::models::User;
 use crate::objects::Player;
 
-use crate::packets::PacketWriter;
-use crate::packets::client::PacketType;
-use crate::packets::server::{
+use std::{string::String, sync::Arc, iter};
+use bytes::{Buf, Bytes};
+
+use sqlx::mysql::MySqlPoolOptions;
+use rand::{Rng, thread_rng, distributions::Alphanumeric};
+
+use crate::packets::{
+    PacketWriter, 
+    client::PacketType,
+    server::{
     LoginReply,
     ChannelInfo,
     ChannelJoined
+}};
+
+use actix_web::{
+    middleware, 
+    get, post, 
+    web, App, 
+    HttpServer, 
+    HttpRequest, 
+    HttpResponse, 
+    Responder
 };
 
-use bytes::{Buf, Bytes};
-use std::sync::Arc;
-use std::string::String;
-use actix_web::{middleware, get, post, web, App, HttpServer, HttpRequest, HttpResponse, Responder};
 
 #[get("/")]
 async fn meme(manager: web::Data<Arc<Manager>>, pool: web::Data<sqlx::MySqlPool>) -> impl Responder {
@@ -36,10 +49,6 @@ async fn meme(manager: web::Data<Arc<Manager>>, pool: web::Data<sqlx::MySqlPool>
 
     HttpResponse::Ok().body(format!("Connections Handled (meme): {:?}", *count))
 }
-
-use std::iter;
-use rand::{Rng, thread_rng};
-use rand::distributions::Alphanumeric;
 
 #[post("/")]
 async fn bancho_main(
@@ -150,8 +159,6 @@ async fn bancho_main(
         }
     }
 }
-
-use sqlx::mysql::MySqlPoolOptions;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
