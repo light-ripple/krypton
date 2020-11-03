@@ -43,8 +43,8 @@ async fn meme(manager: web::Data<Arc<Manager>>, pool: web::Data<sqlx::MySqlPool>
         .fetch_one(pool.get_ref()).await;
 
     match res {
-        Ok(v) => println!("{}", v.0),
-        Err(e) => println!("{:?}", e)
+        Ok(v) => println!("{:1}", v.0),
+        Err(e) => eprintln!("{:?}", e)
     }
 
     HttpResponse::Ok().body(format!("Connections Handled (meme): {:?}", *count))
@@ -76,7 +76,7 @@ async fn bancho_main(
             let mut user = match user {
                 Ok(v) => v,
                 Err(e) => {
-                    println!("{:?}", e);
+                    eprintln!("{:?}", e);
                     return HttpResponse::Ok().set_header("cho-token", "no").body(&b"\x05\x00\x00\x04\x00\x00\x00\xFF\xFF\xFF\xFF"[..]);
                 }
             };
